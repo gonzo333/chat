@@ -11,7 +11,7 @@ Aplikacja umożliwia przeprowadzenie rozmowy czat w utworzonym pokoju czatowym.
 ### Uruchomienie servera
 Należy z linni komend przejść do katalogu w którym znajdują się klasy aplikacji, na przykład:
 ```
-cd C:\Sages\workspace\chat\src\main\java
+C:\Sages\workspace\chat\chat-server\src\main\java
 ```
 Następnnie skompilować kod serwera czat:
 ```
@@ -23,9 +23,9 @@ java ChatServer
 ```
 
 ### Uruchomienie klientów
-Należy z linni komend przejść do katalogu w którym znajdują się klasy aplikacji, na przykład:
+Należy z linni komend przejść do katalogu w którym znajdują się klasy klienta chat, na przykład:
 ```
-cd C:\Sages\workspace\chat\src\main\java
+C:\Sages\workspace\chat\chat-client\src\main\java
 ```
 Następnnie skompilować kod klienta czat:
 ```
@@ -35,13 +35,10 @@ Oraz uruchomić klienta:
 ```
 java ChatClient
 ```
-### Funkcjonalności czata
-Aby zmienić nick należy wykonać następującą komendę
-```
-/nick nowy_nick
-```
-Aby opuścić czat
-```
-/quit
-```
-Każda inna treść zostanie potraktowana jako wiadomość i zostanie wysłana do wszystkich userów podpiętych do pokoju czatowego.
+
+### Funkcjonalności czat
+Czat umożliwia użytkownikowi:
+1. dołączenie do pokoju ogólnego
+2. stworzenie własnego pokoju
+3. dołączenie do pokoju innego usera
+4. czatowanie w każdym z tych pokojów
