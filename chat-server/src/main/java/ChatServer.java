@@ -14,7 +14,6 @@ public class ChatServer implements Runnable {
   private ServerSocket serverSocket;
   private boolean socketClose;
   private ExecutorService pool;
-  private int usersLimit = 4;
 
   public ChatServer() {
     chatUsers = new ArrayList<>();
@@ -32,7 +31,7 @@ public class ChatServer implements Runnable {
   public void run() {
     try {
       serverSocket = new ServerSocket(7777);
-      pool = Executors.newFixedThreadPool(usersLimit);
+      pool = Executors.newFixedThreadPool(Constants.CHAT_USERS_LIMIT);
       while (!socketClose) {
         Socket clientSocket = serverSocket.accept();
         ChatUser chatUser = new ChatUser(clientSocket, this);
@@ -49,7 +48,7 @@ public class ChatServer implements Runnable {
       try {
         serverSocket.close();
         socketClose = true;
-        chatUsers.stream().forEach(ChatUser::destroyUser);
+        chatUsers.forEach(ChatUser::destroyUser);
         pool.shutdown();
       } catch (IOException e) {
         throw new RuntimeException("Exception during shut down");
@@ -58,12 +57,9 @@ public class ChatServer implements Runnable {
   }
 
   public void addChatUserToChatRoomByName(String chatRoomName, ChatUser chatUser) {
-    Optional <ChatRoom> userChatRoom = chatRooms.stream()
-        .filter(chatRoom -> chatRoom.getName().equals(chatRoomName))
-        .findFirst();
-    if (userChatRoom.isPresent()) {
-      userChatRoom.get().addChatUser(chatUser);
-    }
+    Optional<ChatRoom> userChatRoom =
+        chatRooms.stream().filter(chatRoom -> chatRoom.getName().equals(chatRoomName)).findFirst();
+    userChatRoom.ifPresent(chatRoom -> chatRoom.addChatUser(chatUser));
   }
 
   public void createChatRoom(String roomName, ChatUser creator) {
@@ -72,11 +68,12 @@ public class ChatServer implements Runnable {
     chatRooms.add(new ChatRoom(roomName, creator, users));
   }
 
-  public Optional<ChatRoom> getUserRoom(ChatUser chatUser){
+  public Optional<ChatRoom> getUserRoom(ChatUser chatUser) {
     return chatRooms.stream()
-            .filter(chatRoom -> chatRoom.getChatUsers()
-                    .stream()
+        .filter(
+            chatRoom ->
+                chatRoom.getChatUsers().stream()
                     .anyMatch(chatRoomUser -> chatRoomUser.equals(chatUser)))
-            .findFirst();
+        .findFirst();
   }
 }

@@ -52,24 +52,26 @@ class ChatUser implements Runnable {
 
   private void choiseRoomOption() throws IOException {
     displayRoomOptions();
+
     switch (messageReader.readLine()) {
-      case "1":
+      case Constants.CHAT_ROOM_CHOISE_GENERAL_ROOM -> {
         chatServer.addChatUserToChatRoomByName(ChatServer.GENERAL_ROOM_NAME, this);
         messageWriter.println("Czatujesz na kanale ogolnym");
-        break;
-      case "2":
+      }
+      case Constants.CHAT_ROOM_CHOISE_CREATE_ROOM -> {
         messageWriter.println("Podaj nazwe pokoju i zatwierdz enter, aby stworzyc pokoj");
         chatServer.createChatRoom(messageReader.readLine(), this);
         messageWriter.println("Gratulacje stworzyles pokoj");
-        break;
-      case "3":
+      }
+      case Constants.CHAT_ROOM_CHOISE_JOIN_ROOM -> {
         messageWriter.println("Podaj nazwe pokoju do ktorego chcesz dolaczyc");
         chatServer.addChatUserToChatRoomByName(messageReader.readLine(), this);
         messageWriter.println("Poprawnie dolaczyles do pokoju");
-        break;
-      default:
+      }
+      default -> {
         messageWriter.println("Niezana opcja");
         choiseRoomOption();
+      }
     }
   }
 
