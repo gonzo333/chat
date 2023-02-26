@@ -1,3 +1,5 @@
+import enums.Constants;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,8 +11,8 @@ import java.util.concurrent.Executors;
 
 public class ChatServer implements Runnable {
   public static final String GENERAL_ROOM_NAME = "GENERAL";
-  private Collection<ChatUser> chatUsers;
-  private Collection<ChatRoom> chatRooms;
+  private final Collection<ChatUser> chatUsers;
+  private final Collection<ChatRoom> chatRooms;
   private ServerSocket serverSocket;
   private boolean socketClose;
   private ExecutorService pool;

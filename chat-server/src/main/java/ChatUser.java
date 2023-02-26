@@ -1,3 +1,6 @@
+import enums.ChatOperationType;
+import enums.ChatRoomChoose;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -5,9 +8,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Optional;
 
-class ChatUser implements Runnable {
-  private Socket clientSocket;
-  private ChatServer chatServer;
+public class ChatUser implements Runnable {
+  private final Socket clientSocket;
+  private final ChatServer chatServer;
   private BufferedReader messageReader;
   private PrintWriter messageWriter;
   private String nick;
@@ -17,12 +20,16 @@ class ChatUser implements Runnable {
     this.chatServer = chatServer;
   }
 
+  public String getNick() {
+    return nick;
+  }
+
   @Override
   public void run() {
     try {
       createReaderAndWriter();
       getNickFromUser();
-      choiseRoomOption();
+      chooseRoomOption();
       printlHelp();
       listenMessage();
     } catch (IOException e) {
@@ -50,27 +57,27 @@ class ChatUser implements Runnable {
     nick = messageReader.readLine();
   }
 
-  private void choiseRoomOption() throws IOException {
+  private void chooseRoomOption() throws IOException {
     displayRoomOptions();
-
-    switch (messageReader.readLine()) {
-      case Constants.CHAT_ROOM_CHOISE_GENERAL_ROOM -> {
+    ChatRoomChoose chatRoomChoose = ChatRoomChoose.valueOf(messageReader.readLine());
+    switch (chatRoomChoose) {
+      case GENERAL -> {
         chatServer.addChatUserToChatRoomByName(ChatServer.GENERAL_ROOM_NAME, this);
         messageWriter.println("Czatujesz na kanale ogolnym");
       }
-      case Constants.CHAT_ROOM_CHOISE_CREATE_ROOM -> {
+      case CREATE -> {
         messageWriter.println("Podaj nazwe pokoju i zatwierdz enter, aby stworzyc pokoj");
         chatServer.createChatRoom(messageReader.readLine(), this);
         messageWriter.println("Gratulacje stworzyles pokoj");
       }
-      case Constants.CHAT_ROOM_CHOISE_JOIN_ROOM -> {
+      case JOIN -> {
         messageWriter.println("Podaj nazwe pokoju do ktorego chcesz dolaczyc");
         chatServer.addChatUserToChatRoomByName(messageReader.readLine(), this);
         messageWriter.println("Poprawnie dolaczyles do pokoju");
       }
       default -> {
         messageWriter.println("Niezana opcja");
-        choiseRoomOption();
+        chooseRoomOption();
       }
     }
   }
@@ -92,28 +99,28 @@ class ChatUser implements Runnable {
   private void listenMessage() throws IOException {
     String message;
     while ((message = messageReader.readLine()) != null) {
-      if (message.startsWith("/nick")) {
-        changeNick(message.split(" ", 2)[1]);
-      } else if (message.startsWith("/quit")) {
-        sendMessage(nick + " opuścił konwersację.");
-        destroyUser();
-      } else {
-        sendMessage(nick + ": " + message);
+      ChatMessageOperation chatMessageOperation;
+      ChatOperationType chatOperationType = ChatOperationType.valueOf("message");
+      switch (chatOperationType) {
+        case CHANGE_NICK -> chatMessageOperation = new ChatOperationChangeNick();
+
+        case QUIT -> chatMessageOperation = new ChatOperationQuit();
+
+        default -> chatMessageOperation = new ChatOperationSendMessage();
       }
+      chatMessageOperation.makeOperation(this, message);
     }
   }
 
-  private void changeNick(String newNick) {
+  public void changeNick(String newNick) {
     sendMessage(nick + " zmienił nick na " + newNick);
     nick = newNick;
     messageWriter.println("Poprawnie zmieniono nick na: " + newNick);
   }
 
-  private void sendMessage(String message) {
+  public void sendMessage(String message) {
     Optional<ChatRoom> userChatRoom = chatServer.getUserRoom(this);
-    if (userChatRoom.isPresent()) {
-      userChatRoom.get().sendMessageToRoom(message, this);
-    }
+    userChatRoom.ifPresent(chatRoom -> chatRoom.sendMessageToRoom(message, this));
   }
 
   public void displayMessage(String message) {
